@@ -1,5 +1,9 @@
 <?xml version="1.0" ?>
-<robot name="sjtu_drone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       xmlns:device-layer="urn:ietf:params:xml:ns:yang:device-layer"
+       xmlns:network-layer="urn:ietf:params:xml:ns:yang:network-layer"
+       xmlns:ietf-network="urn:ietf:params:xml:ns:yang:ietf-network"
+       name="sjtu-drone">
 <!-- https://answers.ros.org/question/379014/passing-outside-parameters-into-urdf-file-using-xacro/ -->
   <!-- Need argument to get from launch file -->
   <xacro:arg name="params_path" default="$(find sjtu_drone_bringup)/config/drone.yaml"/> 
@@ -12,57 +16,57 @@
 
   <xacro:property name="M_PI" value="3.14159265359" />
 
+<xacro:macro name="sjtu-drone" params="parent id xyz:= '-1 1 2'">
 
-  <link name="base_footprint"/>
-  <joint name="base_footprint_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="base_footprint"/>
-    <child link="base_link"/>
-  </joint>
+    <joint name="sjtu-drone_${id}_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="0 0 0" />
+        <parent link="${parent}"/>
+        <child link="sjtu-drone_${id}_link"/>
+      </joint>
+      
+      <link name="sjtu-drone_${id}_link">
+        <inertial>
+          <mass value="1.477"/>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <inertia ixx="0.1152" ixy="0" ixz="0" iyy="0.1152" iyz="0" izz="0.218"/>
+        </inertial>
+        <collision name="sjtu_drone_collision">
+          <origin rpy="0 0 0" xyz="0   0   0.04"/>
+          <geometry>
+            <mesh filename="package://drone_description/meshes/quadrotor_4.dae"/>
+            <!-- <mesh filename="package://sjtu_drone/quadrotor_4.stl"/> -->
+          </geometry>
+        </collision>
+        <visual name="sjtu_drone_visual">
+          <origin rpy="0 0 0" xyz="0   0   0.04"/>
+          <geometry>
+            <mesh filename="package://drone_description/meshes/quadrotor_4.dae"/>
+            <!-- <mesh filename="package://sjtu_drone/quadrotor_4.dae"/> -->
+          </geometry>
+        </visual>
+      </link>
 
-  <link name="base_link">
-    <inertial>
-      <mass value="1.477"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <inertia ixx="0.1152" ixy="0" ixz="0" iyy="0.1152" iyz="0" izz="0.218"/>
-    </inertial>
-    <collision name="sjtu_drone_collision">
-      <origin rpy="0 0 0" xyz="0   0   0.04"/>
-      <geometry>
-        <mesh filename="file://$(find sjtu_drone_description)/models/sjtu_drone/quadrotor_4.stl"/>
-        <!-- <mesh filename="package://sjtu_drone/quadrotor_4.stl"/> -->
-      </geometry>
-    </collision>
-    <visual name="sjtu_drone_visual">
-      <origin rpy="0 0 0" xyz="0   0   0.04"/>
-      <geometry>
-        <mesh filename="file://$(find sjtu_drone_description)/models/sjtu_drone/quadrotor_4.dae"/>
-        <!-- <mesh filename="package://sjtu_drone/quadrotor_4.dae"/> -->
-      </geometry>
-    </visual>
-  </link>
-
-  <joint name="sonar_joint" type="fixed">
-    <parent link="base_link" />
-    <child link="sonar_link" />
-    <origin rpy="0 ${M_PI/2} 0" xyz="0 0 0"/>
-  </joint>
-  <link name="sonar_link"/>
+      <joint name="sjtu-drone_${id}_sonar_joint" type="fixed">
+        <parent link="sjtu-drone_${id}_link" />
+        <child link="sjtu-drone_${id}_sonar_link" />
+        <origin rpy="0 1.570796326794897 0" xyz="0 0 0"/>
+      </joint>
+      <link name="sjtu-drone_${id}_sonar_link"/>
 
 
-  <joint name="front_cam_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0.2 0 0"/>
-    <parent link="base_link" />
-    <child link="front_cam_link" />
-  </joint>
-  <link name="front_cam_link"/>
+      <joint name="sjtu-drone_${id}_front_cam_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.2 0 0"/>
+        <parent link="sjtu-drone_${id}_link" />
+        <child link="sjtu-drone_${id}_front_cam_link" />
+      </joint>
+      <link name="sjtu-drone_${id}_front_cam_link"/>
 
-  <joint name="bottom_cam_joint" type="fixed">
-    <origin rpy="0 ${M_PI/2} 0" xyz="0 0 0"/>
-    <parent link="base_link" />
-    <child link="bottom_cam_link" />
-  </joint>
-  <link name="bottom_cam_link"/>
+      <joint name="sjtu-drone_${id}_bottom_cam_joint" type="fixed">
+        <origin rpy="0 1.570796326794897 0" xyz="0 0 0"/>
+        <parent link="sjtu-drone_${id}_link" />
+        <child link="sjtu-drone_${id}_bottom_cam_link" />
+      </joint>
+      <link name="sjtu-drone_${id}_bottom_cam_link"/>
 
 
   <gazebo>
@@ -111,7 +115,7 @@
 
   <!-- Sensors -->
   <!-- IMU sensor in 100fps -->
-  <gazebo reference="base_link">
+  <gazebo reference="sjtu-drone_${id}_link">
     <sensor name='sensor_imu' type='imu'>
       <always_on> 1 </always_on>
       <visualize>1</visualize>
@@ -143,7 +147,7 @@
 
 
   <!-- Sonar sensor in 100fps -->
-  <gazebo reference="sonar_link">
+  <gazebo reference="sjtu-drone_${id}_sonar_link">
     <sensor name="sonar" type="ray">
       <always_on>1</always_on>
       <visualize>1</visualize>
@@ -186,7 +190,7 @@
     </sensor>
   </gazebo>
 
-  <gazebo reference="front_cam_link">
+  <gazebo reference="sjtu-drone_${id}_front_cam_link">
     <sensor name="front_camera" type="camera">
       <always_on>1</always_on>
       <visualize>1</visualize>
@@ -223,7 +227,7 @@
 
 
   <!-- downward looking camera -->
-  <gazebo reference="bottom_cam_link">
+  <gazebo reference="sjtu-drone_${id}_bottom_cam_link">
     <sensor name="down_camera" type="camera">
       <always_on>1</always_on>
       <visualize>1</visualize>
@@ -259,7 +263,7 @@
   </gazebo>
 
 
-  <gazebo reference="base_link">
+  <gazebo reference="sjtu-drone_${id}_link">
     <sensor name="gps" type="gps">
       <always_on>1</always_on>
       <update_rate>30</update_rate>
@@ -290,7 +294,7 @@
   </gazebo>
 
 
-  <gazebo reference="base_link">
+  <gazebo reference="sjtu-drone_${id}_link">
     <sensor name="collision_sensor" type="contact">
       <update_rate>100.0</update_rate>
       <always_on>true</always_on>
@@ -306,4 +310,81 @@
       </plugin>
     </sensor>
   </gazebo>
+      <yang>
+            <!-- Radiodot network topology -->
+            <network>
+                <network-id>${L2_network_id}</network-id>
+                <supporting-network>
+                    <network-ref>${L1_network_id}</network-ref>
+                </supporting-network>
+                <node>
+                <node-id>${L2_id}</node-id>
+                <supporting-node>
+                    <network-ref>${L1_network_id}</network-ref>
+                    <node-ref>${L1_id}</node-ref>
+                </supporting-node>
+                <dl:device-layer-node-attributes xmlns:dl="urn:ietf:params:xml:ns:yang:device-layer">
+                    <dl:device-name>sjtu-drone</dl:device-name>
+                    <dl:device-type>generic</dl:device-type>
+                </dl:device-layer-node-attributes>
+                <nt:termination-point xmlns:nt="urn:ietf:params:xml:ns:yang:ietf-network-topology">
+                    <nt:tp-id>_0</nt:tp-id>
+                    <nt:supporting-termination-point>
+                        <nt:network-ref>${L2_id}</nt:network-ref>
+                        <nt:node-ref>${L1_id}</nt:node-ref>
+                        <nt:tp-ref>eth_0</nt:tp-ref>
+                    </nt:supporting-termination-point>
+                    <dl:device-layer-termination-point-attributes xmlns:dl="urn:ietf:params:xml:ns:yang:device-layer">
+                        <dl:port-name>port1</dl:port-name>
+                        <dl:port-type>rj45</dl:port-type>
+                    </dl:device-layer-termination-point-attributes>
+                    <nl:network-layer-termination-point-attributes xmlns:nl="urn:ietf:params:xml:ns:yang:network-layer">
+                        <nl:interface-name>intf1</nl:interface-name>
+                        <nl:interface-type>ethernet</nl:interface-type>
+                        <nl:interface-status>up</nl:interface-status>
+                        <nl:mac-address>00:1A:2B:3C:4D:5E</nl:mac-address>
+                    </nl:network-layer-termination-point-attributes>
+                </nt:termination-point>
+                <nl:network-layer-node-attributes xmlns:nl="urn:ietf:params:xml:ns:yang:network-layer">
+                    <nl:node-name>netNode1</nl:node-name>
+                    <nl:node-type>generic</nl:node-type>
+                </nl:network-layer-node-attributes>
+                </node>
+                <dl:device-layer-topology xmlns:dl="urn:ietf:params:xml:ns:yang:device-layer">
+                    <dl:element>element2</dl:element>
+                </dl:device-layer-topology>
+                <nt:link xmlns:nt="urn:ietf:params:xml:ns:yang:ietf-network-topology">
+                    <nt:link-id>link1</nt:link-id>
+                    <nt:source>
+                        <nt:source-node>node1</nt:source-node>
+                        <nt:source-tp>tp1</nt:source-tp>
+                    </nt:source>
+                    <nt:destination>
+                        <nt:dest-node>node2</nt:dest-node>
+                        <nt:dest-tp>tp2</nt:dest-tp>
+                    </nt:destination>
+                    <nt:supporting-link>
+                        <nt:network-ref>network2</nt:network-ref>
+                        <nt:link-ref>link2</nt:link-ref>
+                    </nt:supporting-link>
+                    <dl:device-layer-link-attributes xmlns:dl="urn:ietf:params:xml:ns:yang:device-layer">
+                        <dl:physical-link-name>physLink1</dl:physical-link-name>
+                        <dl:physical-link-type>cat5e</dl:physical-link-type>
+                    </dl:device-layer-link-attributes>
+                    <nl:network-layer-link-attributes xmlns:nl="urn:ietf:params:xml:ns:yang:network-layer">
+                        <nl:link-name>netLink1</nl:link-name>
+                        <nl:link-type>3gpp-5g-qos-flow</nl:link-type>
+                        <nl:_5qi>1</nl:_5qi>
+                        <nl:gfbr>50</nl:gfbr>
+                        <nl:mfbr>100</nl:mfbr>
+                        <nl:pdb>20</nl:pdb>
+                        <nl:per>0</nl:per>
+                    </nl:network-layer-link-attributes>
+                </nt:link>
+                <nl:network-layer-topology xmlns:nl="urn:ietf:params:xml:ns:yang:network-layer">
+                    <nl:element>element3</nl:element>
+                </nl:network-layer-topology>
+            </network>
+        </yang>
+  </xacro:macro>
 </robot>
