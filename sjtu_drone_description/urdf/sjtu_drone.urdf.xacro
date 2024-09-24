@@ -16,7 +16,7 @@
 
   <xacro:property name="M_PI" value="3.14159265359" />
 
-<xacro:macro name="sjtu-drone" params="parent id xyz:= '-1 1 2'">
+<xacro:macro name="sjtu-drone" params="parent id xyz:= '-1 1 2' L2_network_id:=radiodot-network_level L1_network_id:=radiodot-device_level L2_id:=radiodot_L2 L1_id:=radiodot_L1">
 
     <joint name="sjtu-drone_${id}_joint" type="fixed">
         <origin xyz="${xyz}" rpy="0 0 0" />
@@ -33,14 +33,13 @@
         <collision name="sjtu_drone_collision">
           <origin rpy="0 0 0" xyz="0   0   0.04"/>
           <geometry>
-            <mesh filename="package://drone_description/meshes/quadrotor_4.dae"/>
-            <!-- <mesh filename="package://sjtu_drone/quadrotor_4.stl"/> -->
+            <mesh filename="package://sjtu_drone_description/models/sjtu_drone/quadrotor_4.stl"/>
           </geometry>
         </collision>
         <visual name="sjtu_drone_visual">
           <origin rpy="0 0 0" xyz="0   0   0.04"/>
           <geometry>
-            <mesh filename="package://drone_description/meshes/quadrotor_4.dae"/>
+           <mesh filename="package://sjtu_drone_description/models/sjtu_drone/quadrotor_4.stl"/>
             <!-- <mesh filename="package://sjtu_drone/quadrotor_4.dae"/> -->
           </geometry>
         </visual>
